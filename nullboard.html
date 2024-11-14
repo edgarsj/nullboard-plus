@@ -4628,6 +4628,37 @@
 		NB.storage.setLineHeight ( $html.hasClass('lh-set') ? getLineHeight() : null );
 		NB.storage.setListWidth  ( $html.hasClass('lw-set') ? getListWidth()  : null );
 	}
+	function copyBoard() {
+      if (!NB.board) {
+          return false;
+      }
+
+      // Create a deep copy of the current board
+      const originalBoard = NB.board;
+      const newBoard = new Board();
+
+      // Copy basic properties
+      newBoard.title = originalBoard.title + ' (Copy)';
+
+      // Copy all lists and their notes
+      originalBoard.lists.forEach(list => {
+          const newList = newBoard.addList(list.title);
+
+          list.notes.forEach(note => {
+              const newNote = newList.addNote(note.text);
+              newNote.raw = note.raw;
+              newNote.min = note.min;
+          });
+      });
+
+      // Save the new board
+      NB.storage.saveBoard(newBoard);
+
+      // Open the new board
+      openBoard(newBoard.id);
+
+      return true;
+  }
 
 	/*
 	 *	event handlers
@@ -4925,6 +4956,18 @@
 		var org = getListWidth();
 		NB.varAdjust.start(ev, function(delta){ setListWidth( org + delta/5. ); }, saveUiPrefs);
 	});
+	// Add click handler for copy board function
+    $('.wrap').on('click', '.board .copy-board', function() {
+        copyBoard();
+        return false;
+    });
+
+    // Add the copy board menu item
+    $('.board .menu .bulk').each(function() {
+        if (!$(this).find('.copy-board').length) {
+            $(this).find('.add-list').before('<a href=# class="copy-board">Copy board</a>');
+        }
+    });
 
 	//
 	$(document).on('mouseup', function(ev){
